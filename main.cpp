@@ -2,14 +2,13 @@
 #include <cstdio>
 #include <cstdlib>
 
-#define x_px 2048
-#define y_px 2048 
-
 struct RenderingContext {
 	double x;
 	double y;
 	double scale;
 	unsigned int max_iter;
+	unsigned int x_px;
+	unsigned int y_px;
 };
 
 Color c0, c1, c2, c3, c4;
@@ -41,14 +40,14 @@ void make_frame(RenderingContext* ctx, const char* fmt, int frame_num) {
 
 	unsigned int* hist = (unsigned int*)calloc(ctx->max_iter+1, sizeof(unsigned int));
 	memset(hist, 0, (ctx->max_iter+1) * sizeof(unsigned int));
-	unsigned int* image = (unsigned int*)calloc(x_px*y_px, sizeof(unsigned int));
+	unsigned int* image = (unsigned int*)calloc(ctx->x_px*ctx->y_px, sizeof(unsigned int));
 
 	printf("Starting image %d\n", frame_num);
 	fflush(stdout);
-	for(int i = 0; i < x_px; ++i) {
-		for(int j = 0; j < y_px; ++j) {
-			double x0 = (i*1.0/x_px)*ctx->scale + x_offset;
-			double y0 = (j*1.0/y_px)*ctx->scale + y_offset;
+	for(int i = 0; i < ctx->x_px; ++i) {
+		for(int j = 0; j < ctx->y_px; ++j) {
+			double x0 = (i*1.0/ctx->x_px)*ctx->scale + x_offset;
+			double y0 = (j*1.0/ctx->y_px)*ctx->scale + y_offset;
 			double x  = 0.0;
 			double y  = 0.0;
 			int iter = 0;
@@ -63,10 +62,10 @@ void make_frame(RenderingContext* ctx, const char* fmt, int frame_num) {
 				y = ytemp;
 				++iter;
 			}
-			image[(i + j*x_px)] = iter;
+			image[(i + j*ctx->x_px)] = iter;
 			hist[iter] += 1;
 		}
-		if(i%(x_px/10) == 0){
+		if(i%(ctx->x_px/10) == 0){
 			printf("Line %d\n", i);
 			fflush(stdout);
 		}
@@ -80,16 +79,18 @@ void make_frame(RenderingContext* ctx, const char* fmt, int frame_num) {
 		hist[i] = total;
 	}
 
-	Image img(x_px, y_px);
+	Image img(ctx->x_px, ctx->y_px);
 	printf("Starting coloring...\n");
 	fflush(stdout);
-	for(int i = 0; i < x_px; ++i) {
-		for(int j = 0; j < y_px; ++j) {
-			img.setColor(i, j, get_color(hist[image[(i+j*x_px)]]*1.0/(x_px*y_px)));
+	for(int i = 0; i < ctx->x_px; ++i) {
+		for(int j = 0; j < ctx->y_px; ++j) {
+			img.setColor(i, j, get_color(hist[image[(i+j*ctx->x_px)]]*1.0/(ctx->x_px*ctx->y_px)));
 		}
 	}
 
-	char buff[256];
+	printf("Saving...\n");
+	fflush(stdout);
+	char buff[1024];
 	sprintf(buff, fmt, frame_num);
 	img.writePNG(buff);
 
@@ -105,9 +106,11 @@ int main(){
 	c4.r = 0; c4.g = 2; c4.b = 0;
 
 	RenderingContext ctx;
-	ctx.x = -1.7590170270659;
-	ctx.y = 0.01916067191295;
-	ctx.scale = 1.1e-12;
+	ctx.x = 0.432539867562512;
+	ctx.y = 0.226118675951765;
+	ctx.scale = 3.2e-6;
 	ctx.max_iter = 20000;
+	ctx.x_px = 1024;
+	ctx.y_px = 1024;
 	make_frame(&ctx, "test.png", 0);
 }
