@@ -1,5 +1,31 @@
 #include "image.h"
 
+void ColorScheme::addColor(Color c, float pos) {
+	int i;
+	ColorSchemeColor csc;
+	csc.c = c;	
+	csc.pos = pos;
+	for(i = 0; i < colors.size() && colors.at(i).pos < pos; ++i);
+	colors.insert(colors.begin() + i, csc);
+}
+
+double lerp(double a, double b, double f){ return (a * (1.0 - f)) + (b * f); }
+Color lerp(Color* a, Color* b, double f){
+	Color ret;
+	ret.r = lerp(a->r, b->r, f);
+	ret.g = lerp(a->g, b->g, f);
+	ret.b = lerp(a->b, b->b, f);
+	return ret;
+}
+
+Color ColorScheme::getColor(float pos) {
+	int i;
+	for(i = 0; i < colors.size() && colors.at(i).pos < pos; ++i);
+	ColorSchemeColor a = colors.at(i);
+	ColorSchemeColor b = colors.at(i == 0 ? 0 : i - 1);
+       	return lerp(&(a.c), &(b.c), (pos - a.pos)/(b.pos - a.pos));  	
+}
+
 Image::Image(int w, int h){
 	width = w;
 	height = h;

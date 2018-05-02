@@ -4,17 +4,36 @@
 #include <malloc.h>
 #include <cstring>
 #include <math.h>
+#include <vector>
 
 using namespace std;
 
 struct Color {
 	unsigned char r, g, b;
 	Color(){ r=0; g=0; b=0; }
+	Color(unsigned int hexcode){
+		r = (hexcode >> 16) & 0xff;
+		g = (hexcode >> 8) & 0xff;
+		b = hexcode & 0xff;
+	}
 	Color(unsigned char a, unsigned char c, unsigned char d){
 		r = a;
 		g = c;
 		b = d;
 	}
+};
+
+struct ColorSchemeColor {
+	Color c;
+	float pos;
+};
+
+class ColorScheme {
+public:
+	void addColor(Color c, float pos);
+	Color getColor(float pos);
+private:
+	vector<ColorSchemeColor> colors;
 };
 
 class Image {
